@@ -7,8 +7,10 @@
           </div>
           <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
-               <li><router-link :to="{ name: 'home' }">Home</router-link></li>
-                <li><router-link :to="{ name: 'about' }">about</router-link></li>
+                <li><router-link :to="{ name: 'home' }">Home</router-link></li>
+                <li><router-link :to="{ name: 'signup' }">Sign Up</router-link></li>
+                <li><router-link :to="{ name: 'login' }">Login</router-link></li>
+                <li><router-link v-if="user.authenticated" :to="{ name: 'about' }">About</router-link></li>
               </ul>
           </div>
         </div>
@@ -20,25 +22,19 @@
 </template>
 
 <script>
-  //import Vue from 'vue'
-  // import VueRouter from 'vue-router'
-  // import Hello from './components/Hello'
-  // import Home from './components/Home'
-  // import About from './components/About'
-  // Vue.use(VueRouter)
-  // const router = new VueRouter({
-  //   mode: 'history',
-  //   base: __dirname,
-  //   routes: [
-  //     { path: '/', name: 'home', component: Home },
-  //     { path: '/about', name: 'about', component: About }
-  //   ]
-  // })
   import Home from './components/Home'
   import About from './components/About'
+  import SignUp from './components/SignUp'
+  import Login from './components/Login'
+  import Auth from './services/Auth'
   export default {
     name: 'App',
-    components: { Home , About}
+    data() {
+      return {
+        user: Auth.user
+      }
+    },
+    components: { Home , About,SignUp,Login}
   }
 </script>
 
