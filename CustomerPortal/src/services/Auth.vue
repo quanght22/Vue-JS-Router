@@ -1,79 +1,89 @@
 <script>
 import Vue from 'vue'
+import {router} from '../main'
 const API_URL = 'http://localhost:54895'
-const LOGIN_URL = API_URL + '/Account/Create/'
 const SIGNUP_URL = API_URL + '/Account/Register'
-const GETINFOR_URL = API_URL + '/Account/GetInfor'
+const LOGIN_URL = API_URL + '/connect/token'
 export default {
   name: 'Auth',
     user: {
       authenticated: false
     },
     login(context, creds, redirect) {
-      localStorage.setItem('id_token','xxxxxxxxxxxxxxxxx')
-      this.user.authenticated = true
-      // context.$http.post(LOGIN_URL, creds, (data) => {
-      //   localStorage.setItem('id_token', data.id_token)
-
-      //   this.user.authenticated = true
-
-      //   if(redirect) {
-      //     router.go(redirect)        
-      //   }
-
-      // }).error((err) => {
-      //   context.error = err
-      // })
+       var data = JSON.stringify(creds.body);
+        data = JSON.parse(data);
+        this.authentication(context, data, redirect);
+    },
+    authentication(context, data, redirect) {
+      Vue.http.options.emulateJSON = true
+      Vue.http.options.headers = {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+      }
+      Vue.http.options.beforeSend = function(request) {
+          request.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
+      };
+      Vue.http.post(LOGIN_URL,{
+        grant_type: 'password',
+        username: data.username,
+        password: data.password,
+        scope: 'openid+email+name+profile+roles',
+      }
+      ).then(
+            (response) => {
+                localStorage.setItem('auth-tokens-expiration',this.getExpirationDate(response.data.expires_in));
+                localStorage.setItem('auth-tokens',JSON.stringify(response.data))
+                Vue.http.headers.common['Authorization'] = this.getAuthHeader();
+                // router.push('/');
+                //  router.go('/Home') 
+                  router.push('/');
+            },
+            (response) => {
+                error(response)
+            }
+        )
+    },
+    getExpirationDate(expires_in){
+      var now = new Date();
+      return new Date(now.getTime() + expires_in * 1000).getTime();
     },
     signup(context, creds, redirect) {
-         Vue.http.post(SIGNUP_URL, JSON.stringify(creds)).then(
+        var data = JSON.stringify(creds);
+         Vue.http.post(SIGNUP_URL, data).then(
               (response) => {
-               debugger;
-                  localStorage.setItem('id_token', response.data.token)
-                  Vue.http.headers.common['Authorization'] = this.getAuthHeader();
-                  succes(response.data)
+                  this.authentication(context, JSON.parse(data), redirect);
               },
               (response) => {
                   error(response)
               }
           )
-    //   Vue.http.post(SIGNUP_URL, JSON.stringify(creds),{
-    //   headers: {
-    //         "Access-Control-Allow-Origin": "*",
-    //         "Access-Control-Allow-Credentials": true
-    //      }
-    //     }).then(
-    //     (response) => {
-    //         localStorage.setItem('id_token', response.data.token)
-    //         Vue.http.headers.common['Authorization'] = this.getAuthHeader();
-    //         succes(response.data)
-    //     },
-    //     (response) => {
-    //         error(response)
-    //     }
-    // )
     },
 
     logout() {
-      localStorage.removeItem('id_token')
+      localStorage.removeItem('auth-tokens')
+      localStorage.removeItem('auth-tokens-expiration')
       this.user.authenticated = false
+      router.go('/Login') 
     },
 
     checkAuth() {
-      var jwt = localStorage.getItem('id_token')
-      if(jwt) {
-        this.user.authenticated = true
+      var tokens_expiration = JSON.parse(localStorage.getItem('auth-tokens-expiration'));
+      if (tokens_expiration > new Date().getTime()) {
+        localStorage.setItem('auth-tokens-expiration',this.getExpirationDate(JSON.parse(localStorage.getItem('auth-tokens')).expires_in));
+        this.user.authenticated = true;
+        return true;
       }
-      else {
-        this.user.authenticated = false      
-      }
+      this.user.authenticated = false
+      return false;
     },
-
-
     getAuthHeader() {
-      return {
-        'Authorization': 'Bearer ' + localStorage.getItem('id_token')
+      var authTokens = JSON.parse(localStorage.getItem('auth-tokens'));
+      if(authTokens) {
+        return {
+          'Authorization': 'Bearer ' + authTokens.access_token
+        }
       }
+      return null;
+      
     }
 
 }

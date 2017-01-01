@@ -1,14 +1,10 @@
 <template>
     <div>
-        <h1>Login</h1>
-
-        <b>Test users:</b> (admin / secret) &bull; (test / secret)
-
-        <hr/>
+        <h1 class="loginheader">Login</h1>
 
         <form v-on:submit.prevent="login()">
             <table><tr>
-                <td>Username:</td>
+                <td >Username:<span class="usericon"></span></td>
                 <td><input v-model="data.body.username" /></td>
             </tr><tr>
                 <td>Password:</td>
@@ -22,8 +18,6 @@
             </tr></table>
 
             <hr/>
-
-            <!--<div v-show="error" style="color:red; word-wrap:break-word;">{{ error | json }}</div>-->
         </form>
     </div>
 </template>
@@ -38,8 +32,8 @@ export default {
 
                 data: {
                     body: {
-                        username: 'admin',
-                        password: 'secret'
+                        username: 'quang777@gmail.com',
+                        password: 'Qu@nght198412'
                     },
                     rememberMe: false
                 },
@@ -50,7 +44,7 @@ export default {
 
     methods: {
             login() {
-                Auth.login({
+                Auth.login(this,{
                     body: this.data.body,
                     rememberMe: this.data.rememberMe,
                     redirect: {name: 'account'},

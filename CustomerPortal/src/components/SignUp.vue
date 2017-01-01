@@ -44,9 +44,9 @@ export default {
         submit() {
 
         var credentials = {
-            UserName: this.credentials.username,
-            Password: this.credentials.password,
-            ConfirmPassword: this.credentials.password,
+            username: this.credentials.username,
+            password: this.credentials.password,
+            confirmpassword: this.credentials.password,
         }
 
         Auth.signup(this, credentials, 'secretquote')
